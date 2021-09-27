@@ -1,90 +1,104 @@
 import os
 
-def create_excel_log(name):
-    local = os.getcwd()
-    logs = local + "/excel" + "/" + name
+def create_excel_folder(name):
+    logs = name.replace("csv","excel")
     try:
         os.mkdir(logs)
     except:
         pass
 
+def put_csv_and_get_excel(csv_file):
+    with open("log.txt","w",encoding="utf-8") as l :
+        l.write("")
+
+    filer = FileControl(csv_file)
+    filer.setup_external_name()
+    filer.setup_second_name()
+    filer.setup_last_name()
+    filer.creat_folder()
+    excel_file = filer.get_excel_path()
+    csv_file = filer.get_csv_path()
+    return [csv_file,excel_file]
+
 class FileControl (object):
     def __init__(self,path):
         super(FileControl, self).__init__()
         self.main_folder = os.listdir(path)#獲取有甚麼資料夾
+        
+        #*儲存不同檔案夾下的資料
+        self.experiment = []
+        self.experiment_name = []#*最外層的名稱
+        self.second = []
+        self.second_name = []
         self.client_logs = []
         self.gateway_logs = []
         self.inner_file = []
+        self.hop_file = []
+        self.excel_file = []
+        self.csv_file = []
 
-    def get_css_path(self):
-        temp_file = []
+    def setup_external_name(self):#獲取最外層的檔案名
         for x in self.main_folder:#獲取檔案夾中的檔案名
             inner_name = "./csv" + "/" + x
-            temp_file.append(os.listdir(inner_name))
+            self.experiment_name.append(inner_name)
+            self.experiment.append(os.listdir(inner_name))
 
-        # for folder in temp_file:
-        #     for file in folder:
-        #         num_count = 0
-        #         temp_file_path = ""
-        #
-        #         if folder == temp_file[0] :
-        #             temp_file_path = "./csv" + "/" + "Client logs" + "/"
-        #         else:
-        #             temp_file_path = "./csv" + "/" + "Gateway logs" + "/"
-        #
-        #         for x in file:#查找有多少個數字
-        #             if x.isdigit():#
-        #                 num_count += 1
-        #
-        #         hop_file_path = temp_file_path + str(num_count) + "hop" + "/"
-        #         use_inner_file = hop_file_path + file#加入詳細的相對路徑
-        #
-        #         if folder == temp_file[0]:#Client logs的情況
-        #             self.client_logs.append(use_inner_file)
-        #         else:
-        #             self.gateway_logs.append(use_inner_file)
+        return [self.experiment_name,self.experiment]
+        #return self.experiment
 
-        for folder in temp_file:
-            for file in folder:
-                if folder == temp_file[0]:
-                    use_inner_file = "./csv" + "/" + "Client logs" + "/" + file#加入詳細的相對路徑
-                    self.client_logs.append(use_inner_file)
+    def setup_second_name(self):#*獲取client_logs和gateway_logs檔案夾中的檔案
+        for x in range(len(self.experiment)):
+            for y in range(len(self.experiment[x])):
+                inner_name = self.experiment_name[x] + "/" + self.experiment[x][y]
+                self.second_name.append(inner_name)
+                self.second.append(os.listdir(inner_name))
+
+        return [self.second_name,self.second]
+
+    def setup_last_name(self):#*獲取完整的路徑
+        for x in range(len(self.second)):
+            for y in range(len(self.second[x])):
+                inner_name = self.second_name[x] + "/" + self.second[x][y]
+                if "Client logs" in inner_name:
+                    self.client_logs.append(inner_name)
                 else:
-                    use_inner_file = "./csv" + "/" + "Gateway logs" + "/" + file
-                    self.gateway_logs.append(use_inner_file)
-
+                    self.gateway_logs.append(inner_name)
         self.inner_file.append(self.client_logs)
         self.inner_file.append(self.gateway_logs)
+        return self.inner_file
 
-#===========================================================
-        #按分類成生資料夾
-        save_path = ["Client logs","Gateway logs"]
-        for x in save_path :
-            create_excel_log(x)
-            for y in range(3):
-                temp = x + "/" + str(y+1) + "hop"
-                create_excel_log(temp)
+    def creat_folder(self):#*創建要用的檔案夾
+        create_excel_folder("./excel")#創建excel根目錄
+        for x in self.experiment_name:#創建不同的父目錄
+            create_excel_folder(x)
 
-        return self.inner_file #第一個數組是click的 第2個
+        for x in self.second_name:
+            create_excel_folder(x)#*創建不同的子目錄
+            for y in range(3):#創建3種類型的hop
+                hop_path = x + "/" + str(y+1) + "hop"
+                create_excel_folder(hop_path)
+                self.hop_file.append(hop_path)
 
-    def get_excel_file_path(self,css_file):
-        num_count = 0
-        temp_file_path = ""
-        temp_file_file = ""
-        path = css_file.replace("csv","excel")
-        for x in path:
-            if x.isdigit():#*判斷為多少hop
-                num_count += 1
-        if "Client logs" in path :
-            path = path.replace(",","")
-            temp_file_path = path[:20]
-            temp_file_file = path[20:]
-        else:
-            temp_file_path = path[:21]
-            temp_file_file = path[21:]
-        path = temp_file_path + str(num_count) + "hop" + "/" + temp_file_file #*中間插入hop的位置
-        use_path = path[:len(path) - 5] + "xlsx"#*剛去由csv換成的excel
+    def get_excel_path(self):#生成excel存放的路徑
+        for x in self.inner_file:#*N個檔案
+            for y in x:
+                temp = y.replace(",","")
+                save = temp[:len(temp) - 7]
+                check = temp[len(temp) - 7:]
+                number = 0
+                for z in check:
+                    if z.isdigit():
+                        number += 1
+                sentence = temp[:len(temp) - (4 + number)] + str(number) + "hop" + "/" + temp[len(temp) - (4 + number):]
+                use_sentence = sentence.replace("csv","excel")
+                final_sentence = use_sentence[:len(use_sentence) - 5] + "xlsx"
+                self.excel_file.append(final_sentence)
 
-        return use_path
+        return self.excel_file
 
-
+    def get_csv_path(self):#生成csv存放的路徑
+        for x in range(len(self.second_name)):
+            for y in self.second[x]:
+                temp = self.second_name[x] + "/" + y
+                self.csv_file.append(temp)
+        return self.csv_file

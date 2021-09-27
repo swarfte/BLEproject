@@ -13,7 +13,7 @@ class CTE(object):
         self.setting = open_json(json_path)
         self.csvFileName = csvFile
         self.excelFileName = excelFile
-        self.csvDate = pd.read_csv(self.csvFileName)
+        self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
         self.oldExcelDate = pd.DataFrame()
         self.temp_column = [x["column"] for x in self.setting]
         self.column = []
