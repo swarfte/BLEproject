@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
 
 def open_json(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -9,11 +10,12 @@ def open_json(path):
 class CTE(object):
     def __init__(self, csvFile, json_path,excelFile):
         super(CTE, self).__init__()
-        self.dataNumber = 1000  # *檢測數字
         self.setting = open_json(json_path)
         self.csvFileName = csvFile
         self.excelFileName = excelFile
         self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
+        #self.dataNumber = 1000  # *固定檢測數據
+        self.dataNumber = self.csvDate.shape[0] + 1 # *動態檢測行數
         self.oldExcelDate = pd.DataFrame()
         self.temp_column = [x["column"] for x in self.setting]
         self.column = []
@@ -113,19 +115,30 @@ class FCTE(object):
 
         if "Client logs" in self.csvFileName:#*格式不齊的情況
             for x in range(self.dataNumber):
-                if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
-                    self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[2]][x]
-                    self.oldExcelDate[self.column[7]][x] = self.oldExcelDate[self.column[3]][x]
-                    self.oldExcelDate[self.column[6]][x] = ""
-                    self.oldExcelDate[self.column[7]][x] = ""
+                try:
+                    if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
+
+                        #移動兩欄時間
+                        self.oldExcelDate[self.column[5]][x] = self.oldExcelDate[self.column[2]][x]
+                        self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[3]][x]
+
+                        #刪除兩欄重覆的時間
+                        self.oldExcelDate[self.column[2]][x] = ""
+                        self.oldExcelDate[self.column[3]][x] = ""
+                except:
+                    pass
 
         time_column = []
         day_column = []
         gmtime_column = self.oldExcelDate[self.column[6]]
 
         for x in self.oldExcelDate[self.column[5]]:
-            time_column.append(x[11:-1])  # 時間
-            day_column.append(x[0:10])  # 日期
+            try:
+                time_column.append(x[11:-1])  # 時間
+                day_column.append(x[0:10])  # 日期
+            except:
+                time_column.append("")
+                day_column.append("")
 
         #*直接刪除原本的欄
         self.oldExcelDate.drop(self.column[5], axis=1, inplace=True)
