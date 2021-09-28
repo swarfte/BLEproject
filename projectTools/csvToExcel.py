@@ -84,3 +84,60 @@ class CTE(object):
             except:
                 pass
         self.newExcelDate.to_excel(self.excelFileName, index=None)  # 寫入檔案
+
+
+class FCTE(object):
+    def __init__(self, csvFile, json_path,excelFile):
+        super(FCTE, self).__init__()
+        self.setting = open_json(json_path)
+        self.csvFileName = csvFile
+        self.excelFileName = excelFile
+        self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
+        self.dataNumber = 1000 #檢測數字
+        self.oldExcelDate = pd.DataFrame()
+        self.column = [x["column"] for x in self.setting]
+        self.newExcelDate = pd.DataFrame({#新的格式,創建7個欄位
+            self.column[0]:["" for x in range(self.dataNumber)],#0 type
+            self.column[1]:[x+1 for x in range(self.dataNumber)],#1 sequence
+            self.column[2]:["" for x in range(self.dataNumber)],#2 byte
+            self.column[3]:["" for x in range(self.dataNumber)],#3 hop
+            self.column[4]:["" for x in range(self.dataNumber)],#4 Signal strength
+            "day":["" for x in range(self.dataNumber)],#5 day
+            self.column[5]:["" for x in range(self.dataNumber)],#6 time
+            self.column[6]:["" for x in range(self.dataNumber)]#7 gmtime
+        })
+
+    def transform(self):
+        for x in range(len(self.column)):
+            self.oldExcelDate[self.column[x]] = self.csvDate.iloc[0:len(self.csvDate), [x]]  # 獲取csv中每一欄的資料
+
+        if "Client logs" in self.csvFileName:#*格式不齊的情況
+            for x in range(self.dataNumber):
+                if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
+                    self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[2]][x]
+                    self.oldExcelDate[self.column[7]][x] = self.oldExcelDate[self.column[3]][x]
+                    self.oldExcelDate[self.column[6]][x] = ""
+                    self.oldExcelDate[self.column[7]][x] = ""
+
+        time_column = []
+        day_column = []
+        gmtime_column = self.oldExcelDate[self.column[6]]
+
+        for x in self.oldExcelDate[self.column[5]]:
+            time_column.append(x[11:-1])  # 時間
+            day_column.append(x[0:10])  # 日期
+
+        #*直接刪除原本的欄
+        self.oldExcelDate.drop(self.column[5], axis=1, inplace=True)
+        self.oldExcelDate.drop(self.column[6], axis=1, inplace=True)
+
+        self.oldExcelDate["day"] = day_column
+        self.oldExcelDate["time"] = time_column
+        self.oldExcelDate["gmtime"] = gmtime_column
+
+        for x in range(self.dataNumber):
+            try:
+                self.newExcelDate.loc[x] = self.oldExcelDate.loc[x]
+            except:
+                pass
+        self.newExcelDate.to_excel(self.excelFileName, index=None)  # 寫入檔案

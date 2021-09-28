@@ -1,0 +1,23 @@
+[
+  {
+    "column" : "type"
+  },
+  {
+    "column": "sequence"
+  },
+  {
+    "column": "byte"
+  },
+  {
+    "column": "hop"
+  },
+  {
+    "column": "Signal strength"
+  },
+  {
+    "column": "time"
+  },
+  {
+    "column": "gmtime"
+  }
+]
