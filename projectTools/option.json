@@ -1,0 +1,6 @@
+{
+  "csv_file": "./csv",
+  "excel_file": "./excel",
+  "old_setting_format":"projectTools/excel_setting.json",
+  "new_setting_format": "projectTools/F_excel_setting.json"
+}

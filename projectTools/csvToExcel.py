@@ -88,16 +88,9 @@ class CTE(object):
         self.newExcelDate.to_excel(self.excelFileName, index=None)  # 寫入檔案
 
 
-class FCTE(object):
+class FCTE(CTE):
     def __init__(self, csvFile, json_path,excelFile):
-        super(FCTE, self).__init__()
-        self.setting = open_json(json_path)
-        self.csvFileName = csvFile
-        self.excelFileName = excelFile
-        self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
-        self.dataNumber = 1000 #檢測數字
-        self.oldExcelDate = pd.DataFrame()
-        self.column = [x["column"] for x in self.setting]
+        super(FCTE, self).__init__(csvFile, json_path,excelFile)
         self.newExcelDate = pd.DataFrame({#新的格式,創建7個欄位
             self.column[0]:["" for x in range(self.dataNumber)],#0 type
             self.column[1]:[x+1 for x in range(self.dataNumber)],#1 sequence

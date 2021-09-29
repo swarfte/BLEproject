@@ -1,4 +1,7 @@
 import os
+import json
+
+json_path = "./projectTools/option.json"
 
 def create_excel_folder(name):
     logs = name.replace("csv","excel")
@@ -7,11 +10,11 @@ def create_excel_folder(name):
     except:
         pass
 
-def put_csv_and_get_excel(csv_file):
-    with open("log.txt","w",encoding="utf-8") as l :
+def HOP_put_csv_and_get_excel(csv_file):
+    with open("log.txt","w",encoding="utf-8") as l : #清空log的資料準備下一次使用
         l.write("")
 
-    filer = FileControl(csv_file)
+    filer = HopFileControl(csv_file)
     filer.setup_external_name()
     filer.setup_second_name()
     filer.setup_last_name()
@@ -20,9 +23,9 @@ def put_csv_and_get_excel(csv_file):
     csv_file = filer.get_csv_path()
     return [csv_file,excel_file]
 
-class FileControl (object):
+class HopFileControl (object):
     def __init__(self,path):
-        super(FileControl, self).__init__()
+        super(HopFileControl, self).__init__()
         self.main_folder = os.listdir(path)#獲取有甚麼資料夾
         
         #*儲存不同檔案夾下的資料
@@ -63,12 +66,17 @@ class FileControl (object):
                     self.client_logs.append(inner_name)
                 else:
                     self.gateway_logs.append(inner_name)
+
         self.inner_file.append(self.client_logs)
         self.inner_file.append(self.gateway_logs)
         return self.inner_file
 
     def creat_folder(self):#*創建要用的檔案夾
-        create_excel_folder("./excel")#創建excel根目錄
+        path = ""
+        global json_path
+        with open(json_path, "r", encoding="utf-8") as f:
+            path = json.load(f)
+        create_excel_folder(path["excel_file"])#創建excel根目錄
         for x in self.experiment_name:#創建不同的父目錄
             create_excel_folder(x)
 
@@ -102,3 +110,56 @@ class FileControl (object):
                 temp = self.second_name[x] + "/" + y
                 self.csv_file.append(temp)
         return self.csv_file
+
+def CG_put_csv_and_get_excel(csv_file):
+    with open("log.txt","w",encoding="utf-8") as l : #清空log的資料準備下一次使用
+        l.write("")
+
+    filer = CGFileControl(csv_file)
+    filer.setup_external_name()
+    filer.setup_second_name()
+    filer.setup_last_name()
+    filer.creat_folder()
+    csv_file = filer.get_csv_path()
+    excel_file = filer.get_excel_path()
+
+    return [csv_file,excel_file]
+
+
+class CGFileControl (HopFileControl):
+    def __init__(self,path):
+        super(CGFileControl, self).__init__(path)
+
+    def creat_folder(self):#*創建要用的檔案夾
+        path = ""
+        global json_path
+        with open(json_path, "r", encoding="utf-8") as f:
+            path = json.load(f)
+
+        create_excel_folder(path["excel_file"])#創建excel根目錄
+        for x in self.experiment_name:
+            create_excel_folder(x)
+
+    def get_excel_path(self):
+        for logs in self.inner_file:
+            for y in logs:
+                temp = y.replace(",","")
+                save = temp[:len(temp) - 7]
+                check = temp[len(temp) - 7:]
+                number = 0
+                for z in check:
+                    if z.isdigit():
+                        number += 1
+                sentence = temp[:len(temp) - (4 + number)]
+                file_name = temp[len(temp) - (4 + number):]
+                if "Client logs" in sentence:
+                    sentence = sentence[:len(sentence) - len("Client logs")-1] + file_name
+                    sentence = sentence[:len(sentence)-4] + "c" + ".csv"
+                else:
+                    sentence = sentence[:len(sentence) - len("Gateway logs")-1] + file_name
+                    sentence = sentence[:len(sentence)-4] + "g" + ".csv"
+                use_sentence = sentence.replace("csv","excel")
+                final_sentence = use_sentence[:len(use_sentence) - 5] + "xlsx"
+                self.excel_file.append(final_sentence)
+
+        return self.excel_file
