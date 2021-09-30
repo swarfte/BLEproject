@@ -31,14 +31,14 @@ def CG_mode(csv_file, setting_file,fix_file):#*生成對應的檔案夾名,並�
             run = PC.CTE(all_file[0][x],setting_file,all_file[1][x])
             run.transform()
         except :
-            # try:
-            Frun = PC.SQ_FCTE(all_file[0][x],fix_file,all_file[1][x])
-            Frun.transform()
-            # except pd.errors.EmptyDataError:
-            #     with open ("log.txt","a",encoding="utf-8") as log:
-            #         sentence = "檔案:" + all_file[0][x] + "為空白,因此不能正確地轉為excel檔\n"
-            #         log.write(sentence)
-            # except Exception as ex:
-            #     with open ("log.txt","a",encoding="utf-8") as log:
-            #         sentence = "檔案:" + all_file[0][x] + "出現了未知的錯誤\n " + str(ex)
-            #         log.write(sentence)
+            try:
+                Frun = PC.SQ_FCTE(all_file[0][x],fix_file,all_file[1][x])
+                Frun.transform()
+            except pd.errors.EmptyDataError:
+                with open ("log.txt","a",encoding="utf-8") as log:
+                    sentence = "檔案:" + all_file[0][x] + "為空白,因此不能正確地轉為excel檔\n"
+                    log.write(sentence)
+            except Exception as ex:
+                with open ("log.txt","a",encoding="utf-8") as log:
+                    sentence = "檔案:" + all_file[0][x] + "出現了未知的錯誤\n " + str(ex)
+                    log.write(sentence)

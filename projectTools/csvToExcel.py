@@ -34,8 +34,8 @@ class CTE(object):
             self.column = [self.temp_column[0],self.temp_column[4],self.temp_column[5]]
             self.newExcelData = pd.DataFrame({#新的格式
                 self.column[0]:[x + 1 for x in range(self.dataNumber)],
-                self.column[1]:["" for x in range(self.dataNumber)],
                 "day":["" for x in range(self.dataNumber)],
+                self.column[1]:["" for x in range(self.dataNumber)],
                 self.column[2]:["" for x in range(self.dataNumber)],
             })
     def native_transform(self):  # 不作任何修改的寫入
