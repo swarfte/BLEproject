@@ -1,7 +1,9 @@
 import os
 import json
 
-json_path = "./projectTools/option.json"
+
+with open("./config/option.json", "r", encoding="utf-8") as f:
+    json_path = json.load(f)
 
 def create_excel_folder(name):
     logs = name.replace("csv","excel")
@@ -11,7 +13,8 @@ def create_excel_folder(name):
         pass
 
 def HOP_put_csv_and_get_excel(csv_file):
-    with open("log.txt","w",encoding="utf-8") as l : #清空log的資料準備下一次使用
+    global json_path
+    with open(json_path["log_file"],"w",encoding="utf-8") as l : #清空log的資料準備下一次使用
         l.write("")
 
     filer = HopFileControl(csv_file)
@@ -112,7 +115,8 @@ class HopFileControl (object):
         return self.csv_file
 
 def CG_put_csv_and_get_excel(csv_file):
-    with open("log.txt","w",encoding="utf-8") as l : #清空log的資料準備下一次使用
+    global json_path
+    with open(json_path["log_file"],"w",encoding="utf-8") as l : #清空log的資料準備下一次使用
         l.write("")
 
     filer = CGFileControl(csv_file)
@@ -131,12 +135,8 @@ class CGFileControl (HopFileControl):
         super(CGFileControl, self).__init__(path)
 
     def creat_folder(self):#*創建要用的檔案夾
-        path = ""
         global json_path
-        with open(json_path, "r", encoding="utf-8") as f:
-            path = json.load(f)
-
-        create_excel_folder(path["excel_file"])#創建excel根目錄
+        create_excel_folder(json_path["excel_file"])#創建excel根目錄
         for x in self.experiment_name:
             create_excel_folder(x)
 

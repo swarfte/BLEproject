@@ -199,22 +199,21 @@ class SQ_FCTE(FCTE):
         self.oldExcelDate["gmtime"] = gmtime_column
 
         #TODO 控制res/req的輸出
-        current_req_number = 0
+        current_req_number = 0 #檢測當前的編號
+        check = 0 #用於判斷留空
         for x in range(self.dataNumber):
             try:
                 if "Client logs" in self.csvFileName:#如果是Client的話則判斷res和req
-                    if "req" in self.oldExcelDate[self.column[0]][x]:
+                    if "req" in self.oldExcelDate[self.column[0]][x]:#req的excel檔部份
                         if current_req_number > 0:#第二欄才會開始執行
                             if int(str(self.oldExcelDate[self.column[1]][x-1])) == int(str(self.oldExcelDate[self.column[1]][x])):#假如兩個req的數字是一樣的
-                                self.res_ExcelData.loc[x-1] = ""#留空
+                                self.res_ExcelData.loc[x-check-1] = ""#res留空
                         current_req_number = int(str(self.oldExcelDate[self.column[1]][x]))#檢測當前的數字
-                        # if current_req_number > 0 and "res" in self.oldExcelDate[self.column[0]][x-1]:
-                        #     self.req_ExcelData.loc[x-1] = self.oldExcelDate.loc[x]
-                        self.req_ExcelData.loc[x] = self.oldExcelDate.loc[x]#將當前的行寫入req檔案
+                        self.req_ExcelData.loc[x-check] = self.oldExcelDate.loc[x]
                     else:
-                        self.req_ExcelData.loc[x] = ""#留空
-                        self.res_ExcelData.loc[x] = ""#TODO 留空
-                        self.res_ExcelData.loc[x-1] = self.oldExcelDate.loc[x]#將當前的行寫入res檔案
+                        self.res_ExcelData.loc[x-check] = ""
+                        self.res_ExcelData.loc[x-check-1] = self.oldExcelDate.loc[x]#將當前的行寫入res檔案
+                        check += 1
                 else:
                     self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
             except:
