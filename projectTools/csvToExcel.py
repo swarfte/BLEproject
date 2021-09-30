@@ -183,7 +183,7 @@ class SQ_FCTE(FCTE):
         self.oldExcelDate["time"] = time_column
         self.oldExcelDate["gmtime"] = gmtime_column
 
-        #TODO 控制res/req的輸出
+        #控制res/req的輸出
         current_req_number = 0 #檢測當前的編號
         check = 0 #用於判斷留空
         for x in range(self.dataNumber):
@@ -194,11 +194,11 @@ class SQ_FCTE(FCTE):
                             self.res_ExcelData.loc[x-check-1] = ""#res留空
                     current_req_number = int(str(self.oldExcelDate[self.column[1]][x]))#檢測當前的數字
                     self.req_ExcelData.loc[x-check] = self.oldExcelDate.loc[x]
-                else:
+                elif "res" in self.oldExcelDate[self.column[0]][x]:
                     self.res_ExcelData.loc[x-check] = ""
                     self.res_ExcelData.loc[x-check-1] = self.oldExcelDate.loc[x]#將當前的行寫入res檔案
                     check += 1
-            else:
+            elif "Gateway logs" in self.csvFileName:
                 self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
 
         if "Client logs" in self.csvFileName:#假如是Client logs類的檔案則按res/rsq分類
@@ -207,5 +207,5 @@ class SQ_FCTE(FCTE):
             self.req_ExcelData.to_excel(req_name,index=None)
             self.res_ExcelData.to_excel(res_name, index=None)
 
-        else:
+        elif "Gateway logs" in self.csvFileName:
             self.newExcelData.to_excel(self.excelFileName, index=None)  # 寫入檔案

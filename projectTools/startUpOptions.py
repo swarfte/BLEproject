@@ -28,6 +28,7 @@ def CG_mode(options):#*生成對應的檔案夾名,並在檔案名後加上c或g
     print("CG mode start")
     all_file = PF.CG_put_csv_and_get_excel(options["csv_file"])
     for x in range(len(all_file[0])):
+        print("changeing " + all_file[0][x])
         try:
             run = PC.CTE(all_file[0][x],options["old_setting_format"],all_file[1][x])
             run.transform()

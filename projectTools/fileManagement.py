@@ -50,7 +50,6 @@ class HopFileControl (object):
             self.experiment.append(os.listdir(inner_name))
 
         return [self.experiment_name,self.experiment]
-        #return self.experiment
 
     def setup_second_name(self):#*獲取client_logs和gateway_logs檔案夾中的檔案
         for x in range(len(self.experiment)):
@@ -155,7 +154,7 @@ class CGFileControl (HopFileControl):
                 if "Client logs" in sentence:
                     sentence = sentence[:len(sentence) - len("Client logs")-1] + file_name
                     sentence = sentence[:len(sentence)-4] + "c" + ".csv"
-                else:
+                elif "Gateway logs" in sentence:
                     sentence = sentence[:len(sentence) - len("Gateway logs")-1] + file_name
                     sentence = sentence[:len(sentence)-4] + "g" + ".csv"
                 use_sentence = sentence.replace("csv","excel")
