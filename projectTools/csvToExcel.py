@@ -111,30 +111,22 @@ class FCTE(CTE):
 
         if "Client logs" in self.csvFileName:#*格式不齊的情況
             for x in range(self.dataNumber):
-                try:
-                    if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
+                if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
+                    #移動兩欄時間
+                    self.oldExcelDate[self.column[5]][x] = self.oldExcelDate[self.column[2]][x]
+                    self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[3]][x]
 
-                        #移動兩欄時間
-                        self.oldExcelDate[self.column[5]][x] = self.oldExcelDate[self.column[2]][x]
-                        self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[3]][x]
-
-                        #刪除兩欄重覆的時間
-                        self.oldExcelDate[self.column[2]][x] = ""
-                        self.oldExcelDate[self.column[3]][x] = ""
-                except:
-                    pass
+                    #刪除兩欄重覆的時間
+                    self.oldExcelDate[self.column[2]][x] = ""
+                    self.oldExcelDate[self.column[3]][x] = ""
 
         time_column = []
         day_column = []
         gmtime_column = self.oldExcelDate[self.column[6]]
 
         for x in self.oldExcelDate[self.column[5]]:
-            try:
-                time_column.append(x[11:-1])  # 時間
-                day_column.append(x[0:10])  # 日期
-            except:
-                time_column.append("")
-                day_column.append("")
+            time_column.append(x[11:-1])  # 時間
+            day_column.append(x[0:10])  # 日期
 
         #*直接刪除原本的欄
         self.oldExcelDate.drop(self.column[5], axis=1, inplace=True)
@@ -164,30 +156,23 @@ class SQ_FCTE(FCTE):
 
         if "Client logs" in self.csvFileName:#*格式不齊的情況
             for x in range(self.dataNumber):
-                try:
-                    if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
+                if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
 
-                        #移動兩欄時間
-                        self.oldExcelDate[self.column[5]][x] = self.oldExcelDate[self.column[2]][x]
-                        self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[3]][x]
+                    #移動兩欄時間
+                    self.oldExcelDate[self.column[5]][x] = self.oldExcelDate[self.column[2]][x]
+                    self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[3]][x]
 
-                        #刪除兩欄重覆的時間
-                        self.oldExcelDate[self.column[2]][x] = ""
-                        self.oldExcelDate[self.column[3]][x] = ""
-                except:
-                    pass
+                    #刪除兩欄重覆的時間
+                    self.oldExcelDate[self.column[2]][x] = ""
+                    self.oldExcelDate[self.column[3]][x] = ""
 
         time_column = []
         day_column = []
         gmtime_column = self.oldExcelDate[self.column[6]]
 
         for x in self.oldExcelDate[self.column[5]]:
-            try:
-                time_column.append(x[11:-1])  # 時間
-                day_column.append(x[0:10])  # 日期
-            except:
-                time_column.append("")
-                day_column.append("")
+            time_column.append(x[11:-1])  # 時間
+            day_column.append(x[0:10])  # 日期
 
         #*直接刪除原本的欄
         self.oldExcelDate.drop(self.column[5], axis=1, inplace=True)
@@ -202,24 +187,21 @@ class SQ_FCTE(FCTE):
         current_req_number = 0 #檢測當前的編號
         check = 0 #用於判斷留空
         for x in range(self.dataNumber):
-            try:
-                if "Client logs" in self.csvFileName:#如果是Client的話則判斷res和req
-                    if "req" in self.oldExcelDate[self.column[0]][x]:#req的excel檔部份
-                        if current_req_number > 0:#第二欄才會開始執行
-                            if int(str(self.oldExcelDate[self.column[1]][x-1])) == int(str(self.oldExcelDate[self.column[1]][x])):#假如兩個req的數字是一樣的
-                                self.res_ExcelData.loc[x-check-1] = ""#res留空
-                        current_req_number = int(str(self.oldExcelDate[self.column[1]][x]))#檢測當前的數字
-                        self.req_ExcelData.loc[x-check] = self.oldExcelDate.loc[x]
-                    else:
-                        self.res_ExcelData.loc[x-check] = ""
-                        self.res_ExcelData.loc[x-check-1] = self.oldExcelDate.loc[x]#將當前的行寫入res檔案
-                        check += 1
+            if "Client logs" in self.csvFileName:#如果是Client的話則判斷res和req
+                if "req" in self.oldExcelDate[self.column[0]][x]:#req的excel檔部份
+                    if current_req_number > 0:#第二欄才會開始執行
+                        if int(str(self.oldExcelDate[self.column[1]][x-1])) == int(str(self.oldExcelDate[self.column[1]][x])):#假如兩個req的數字是一樣的
+                            self.res_ExcelData.loc[x-check-1] = ""#res留空
+                    current_req_number = int(str(self.oldExcelDate[self.column[1]][x]))#檢測當前的數字
+                    self.req_ExcelData.loc[x-check] = self.oldExcelDate.loc[x]
                 else:
-                    self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
-            except:
-                pass
+                    self.res_ExcelData.loc[x-check] = ""
+                    self.res_ExcelData.loc[x-check-1] = self.oldExcelDate.loc[x]#將當前的行寫入res檔案
+                    check += 1
+            else:
+                self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
 
-        if "Client logs" in self.csvFileName:#按res/rsq檔名分類
+        if "Client logs" in self.csvFileName:#假如是Client logs類的檔案則按res/rsq分類
             res_name = self.excelFileName[:len(self.excelFileName)-5] + "_res" + ".xlsx"
             req_name = self.excelFileName[:len(self.excelFileName)-5] + "_req" + ".xlsx"
             self.req_ExcelData.to_excel(req_name,index=None)
