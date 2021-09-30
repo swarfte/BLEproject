@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import copy
 pd.options.mode.chained_assignment = None  # default='warn'
 
 def open_json(path):
@@ -15,7 +16,7 @@ class CTE(object):
         self.excelFileName = excelFile
         self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
         #self.dataNumber = 1000  # *固定檢測數據
-        self.dataNumber = self.csvDate.shape[0] + 1 # *動態檢測行數
+        self.dataNumber = self.csvDate.shape[0] # *動態檢測行數
         self.oldExcelDate = pd.DataFrame()
         self.temp_column = [x["column"] for x in self.setting]
         self.column = []
@@ -153,8 +154,9 @@ class FCTE(CTE):
 class SQ_FCTE(FCTE):
     def __init__(self, csvFile, json_path,excelFile):
         super(SQ_FCTE, self).__init__(csvFile, json_path,excelFile)
-        self.req_ExcelData = self.newExcelData
-        self.res_ExcelData = self.newExcelData
+        #複制兩個獨立的excel檔
+        self.req_ExcelData = copy.deepcopy(self.newExcelData)
+        self.res_ExcelData = copy.deepcopy(self.newExcelData)
 
     def transform(self):
         for x in range(len(self.column)):
@@ -197,15 +199,22 @@ class SQ_FCTE(FCTE):
         self.oldExcelDate["gmtime"] = gmtime_column
 
         #TODO 控制res/req的輸出
-        check = 0
+        current_req_number = 0
         for x in range(self.dataNumber):
             try:
                 if "Client logs" in self.csvFileName:#如果是Client的話則判斷res和req
                     if "req" in self.oldExcelDate[self.column[0]][x]:
-                        self.req_ExcelData.loc[x-check] = self.oldExcelDate.loc[x]
-                        check += 1
+                        if current_req_number > 0:#第二欄才會開始執行
+                            if int(str(self.oldExcelDate[self.column[1]][x-1])) == int(str(self.oldExcelDate[self.column[1]][x])):#假如兩個req的數字是一樣的
+                                self.res_ExcelData.loc[x-1] = ""#留空
+                        current_req_number = int(str(self.oldExcelDate[self.column[1]][x]))#檢測當前的數字
+                        # if current_req_number > 0 and "res" in self.oldExcelDate[self.column[0]][x-1]:
+                        #     self.req_ExcelData.loc[x-1] = self.oldExcelDate.loc[x]
+                        self.req_ExcelData.loc[x] = self.oldExcelDate.loc[x]#將當前的行寫入req檔案
                     else:
-                        self.res_ExcelData.loc[x] = self.oldExcelDate.loc[x]
+                        self.req_ExcelData.loc[x] = ""#留空
+                        self.res_ExcelData.loc[x] = ""#TODO 留空
+                        self.res_ExcelData.loc[x-1] = self.oldExcelDate.loc[x]#將當前的行寫入res檔案
                 else:
                     self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
             except:
