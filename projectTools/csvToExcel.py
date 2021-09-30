@@ -21,7 +21,7 @@ class CTE(object):
         self.column = []
         if "Client logs" not in self.csvFileName:#*Gateway logs的情況
             self.column = self.temp_column
-            self.newExcelDate = pd.DataFrame({#新的格式
+            self.newExcelData = pd.DataFrame({#新的格式
                 self.column[0]:[x + 1 for x in range(self.dataNumber)],
                 self.column[1]:["" for x in range(self.dataNumber)],
                 self.column[2]:["" for x in range(self.dataNumber)],
@@ -32,7 +32,7 @@ class CTE(object):
             })
         else:#Client logs的情況
             self.column = [self.temp_column[0],self.temp_column[4],self.temp_column[5]]
-            self.newExcelDate = pd.DataFrame({#新的格式
+            self.newExcelData = pd.DataFrame({#新的格式
                 self.column[0]:[x + 1 for x in range(self.dataNumber)],
                 self.column[1]:["" for x in range(self.dataNumber)],
                 "day":["" for x in range(self.dataNumber)],
@@ -81,17 +81,19 @@ class CTE(object):
                 old_data_number = int(self.oldExcelDate.iloc[check_index].at[self.column[0]])
                 if x+1 == old_data_number:#檢測到有資料匹配
                     temp = list(self.oldExcelDate.loc[check_index])
-                    self.newExcelDate.loc[x] = temp
+                    self.newExcelData.loc[x] = temp
                     check_index += 1
             except:
                 pass
-        self.newExcelDate.to_excel(self.excelFileName, index=None)  # 寫入檔案
+        self.newExcelData.to_excel(self.excelFileName, index=None)  # 寫入檔案
 
 
 class FCTE(CTE):
     def __init__(self, csvFile, json_path,excelFile):
         super(FCTE, self).__init__(csvFile, json_path,excelFile)
-        self.newExcelDate = pd.DataFrame({#新的格式,創建7個欄位
+        self.temp_column = [x["column"] for x in self.setting]
+        self.column = self.temp_column
+        self.newExcelData = pd.DataFrame({#新的格式,創建7個欄位
             self.column[0]:["" for x in range(self.dataNumber)],#0 type
             self.column[1]:[x+1 for x in range(self.dataNumber)],#1 sequence
             self.column[2]:["" for x in range(self.dataNumber)],#2 byte
@@ -143,7 +145,77 @@ class FCTE(CTE):
 
         for x in range(self.dataNumber):
             try:
-                self.newExcelDate.loc[x] = self.oldExcelDate.loc[x]
+                self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
             except:
                 pass
-        self.newExcelDate.to_excel(self.excelFileName, index=None)  # 寫入檔案
+        self.newExcelData.to_excel(self.excelFileName, index=None)  # 寫入檔案
+
+class SQ_FCTE(FCTE):
+    def __init__(self, csvFile, json_path,excelFile):
+        super(SQ_FCTE, self).__init__(csvFile, json_path,excelFile)
+        self.req_ExcelData = self.newExcelData
+        self.res_ExcelData = self.newExcelData
+
+    def transform(self):
+        for x in range(len(self.column)):
+            self.oldExcelDate[self.column[x]] = self.csvDate.iloc[0:len(self.csvDate), [x]]  # 獲取csv中每一欄的資料
+
+        if "Client logs" in self.csvFileName:#*格式不齊的情況
+            for x in range(self.dataNumber):
+                try:
+                    if "2021" in self.oldExcelDate[self.column[2]][x]:#*檢測是否錯行,是的話就移動資料
+
+                        #移動兩欄時間
+                        self.oldExcelDate[self.column[5]][x] = self.oldExcelDate[self.column[2]][x]
+                        self.oldExcelDate[self.column[6]][x] = self.oldExcelDate[self.column[3]][x]
+
+                        #刪除兩欄重覆的時間
+                        self.oldExcelDate[self.column[2]][x] = ""
+                        self.oldExcelDate[self.column[3]][x] = ""
+                except:
+                    pass
+
+        time_column = []
+        day_column = []
+        gmtime_column = self.oldExcelDate[self.column[6]]
+
+        for x in self.oldExcelDate[self.column[5]]:
+            try:
+                time_column.append(x[11:-1])  # 時間
+                day_column.append(x[0:10])  # 日期
+            except:
+                time_column.append("")
+                day_column.append("")
+
+        #*直接刪除原本的欄
+        self.oldExcelDate.drop(self.column[5], axis=1, inplace=True)
+        self.oldExcelDate.drop(self.column[6], axis=1, inplace=True)
+
+        #加入新的欄位
+        self.oldExcelDate["day"] = day_column
+        self.oldExcelDate["time"] = time_column
+        self.oldExcelDate["gmtime"] = gmtime_column
+
+        #TODO 控制res/req的輸出
+        check = 0
+        for x in range(self.dataNumber):
+            try:
+                if "Client logs" in self.csvFileName:#如果是Client的話則判斷res和req
+                    if "req" in self.oldExcelDate[self.column[0]][x]:
+                        self.req_ExcelData.loc[x-check] = self.oldExcelDate.loc[x]
+                        check += 1
+                    else:
+                        self.res_ExcelData.loc[x] = self.oldExcelDate.loc[x]
+                else:
+                    self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
+            except:
+                pass
+
+        if "Client logs" in self.csvFileName:#按res/rsq檔名分類
+            res_name = self.excelFileName[:len(self.excelFileName)-5] + "_res" + ".xlsx"
+            req_name = self.excelFileName[:len(self.excelFileName)-5] + "_req" + ".xlsx"
+            self.req_ExcelData.to_excel(req_name,index=None)
+            self.res_ExcelData.to_excel(res_name, index=None)
+
+        else:
+            self.newExcelData.to_excel(self.excelFileName, index=None)  # 寫入檔案
