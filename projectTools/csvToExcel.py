@@ -15,8 +15,18 @@ class CTE(object):
         self.csvFileName = csvFile
         self.excelFileName = excelFile
         self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
-        #self.dataNumber = 1000  # *固定檢測數據
-        self.dataNumber = self.csvDate.shape[0] # *動態檢測行數
+        self.dataNumber = 0
+        #self.dataNumber = 1000  # 固定檢測數
+        try:
+            if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][0])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
+                self.dataNumber = self.csvDate.loc[self.csvDate.shape[0]-1][0]# 根據原檔案最後的sequence數
+            else:
+                self.dataNumber = self.csvDate.shape[0]# 根據原檔案的行數
+        except ValueError :#如果遇上另一種數據類型
+            if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][1])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
+                self.dataNumber = self.csvDate.loc[self.csvDate.shape[0]-1][1]# 根據原檔案最後的sequence數
+            else:
+                self.dataNumber = self.csvDate.shape[0] # 根據原檔案的行數
         self.oldExcelDate = pd.DataFrame()
         self.temp_column = [x["column"] for x in self.setting]
         self.column = []
@@ -44,6 +54,9 @@ class CTE(object):
             self.oldExcelDate[self.column[x]] = self.csvDate.iloc[0:len(self.csvDate), [x]]  # 獲取csv中每一欄的資料
 
         self.oldExcelDate.to_excel(self.excelFileName, index=None)  # 寫入檔案
+
+    def test(self):
+        print(f"file : {self.csvFileName}  \n row : {self.csvDate.shape[0]} \n sequence :{self.csvDate.loc[self.csvDate.shape[0]-1][0]}")
 
     def transform(self):  # *填空且分成時間和日期兩欄
         for x in range(len(self.column)):
@@ -76,14 +89,28 @@ class CTE(object):
         self.oldExcelDate["gmtime"] = gmtime_column
 
         check_index = 0
+        nullrow = 0
         for x in range(self.dataNumber):
             try:
                 #*對比新舊資料
-                old_data_number = int(self.oldExcelDate.iloc[check_index].at[self.column[0]])
+                old_data_number = int(self.oldExcelDate.iloc[check_index].at[self.column[0]])#檢測數字
                 if x+1 == old_data_number:#檢測到有資料匹配
                     temp = list(self.oldExcelDate.loc[check_index])
-                    self.newExcelData.loc[x] = temp
+                    self.newExcelData.loc[x-nullrow] = temp
                     check_index += 1
+                else:
+                    nullrow += 1 #檢測是否有缺少行
+                    # self.newExcelData.loc[x-nullrow] = ""
+            except Exception as ex:
+                print(str(ex))
+
+        check = False
+        for x in range(self.dataNumber):
+            try:
+                if check:
+                    self.newExcelData.loc[x] = ""#消掉多的空行
+                if int(self.newExcelData.iloc[x].at[self.column[0]]) == self.dataNumber:#*檢測是否為多餘的空行
+                    check = True
             except:
                 pass
         self.newExcelData.to_excel(self.excelFileName, index=None)  # 寫入檔案
@@ -143,6 +170,9 @@ class FCTE(CTE):
                 pass
         self.newExcelData.to_excel(self.excelFileName, index=None)  # 寫入檔案
 
+    def test(self):
+        print(f"file : {self.csvFileName}  \n row : {self.csvDate.shape[0]} \n sequence :{self.csvDate.loc[self.csvDate.shape[1]-1][0]}")
+
 class SQ_FCTE(FCTE):
     def __init__(self, csvFile, json_path,excelFile):
         super(SQ_FCTE, self).__init__(csvFile, json_path,excelFile)
@@ -201,7 +231,25 @@ class SQ_FCTE(FCTE):
             elif "Gateway logs" in self.csvFileName:
                 self.newExcelData.loc[x] = self.oldExcelDate.loc[x]
 
-        if "Client logs" in self.csvFileName:#假如是Client logs類的檔案則按res/rsq分類
+        if "Client logs" in self.csvFileName:
+            req_check = False
+            res_check = False
+            #判斷res和req那裡開始出現空行
+            for x in range(self.dataNumber):
+                try:
+                    if req_check:
+                        self.req_ExcelData.loc[x] = ""#消掉多的空行
+                    if res_check:
+                        self.res_ExcelData.loc[x] =""
+                    if int(str(self.req_ExcelData.loc[x][1])) == int(str(self.csvDate.loc[self.csvDate.shape[0]-1][1])):#*檢測是否為多餘的空行
+                        req_check = True
+                    if int(str(self.res_ExcelData.loc[x][1])) == int(str(self.csvDate.loc[self.csvDate.shape[0]-1][1])):#*檢測是否為多餘的空行
+                        res_check = True
+                except:
+                    pass
+
+
+        if "Client logs" in self.csvFileName:#假如是Client logs類的檔案則按res/rsq分類並打包
             res_name = self.excelFileName[:len(self.excelFileName)-5] + "_res" + ".xlsx"
             req_name = self.excelFileName[:len(self.excelFileName)-5] + "_req" + ".xlsx"
             self.req_ExcelData.to_excel(req_name,index=None)

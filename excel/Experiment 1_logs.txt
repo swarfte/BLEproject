@@ -1,0 +1,5 @@
+檔案:./csv/Experiment 1/Gateway logs/28.csv出現了未知的錯誤: -1
+檔案:./csv/Experiment 1/Gateway logs/4.csv出現了未知的錯誤: -1
+檔案:./csv/Experiment 1/Gateway logs/58.csv為空白,因此不能正確地轉為excel檔
+檔案:./csv/Experiment 1/Gateway logs/68.csv為空白,因此不能正確地轉為excel檔
+檔案:./csv/Experiment 1/Gateway logs/8.csv為空白,因此不能正確地轉為excel檔
