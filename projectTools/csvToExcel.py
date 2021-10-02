@@ -16,17 +16,17 @@ class CTE(object):
         self.excelFileName = excelFile
         self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
         self.dataNumber = 0
-        #self.dataNumber = 1000  # 固定檢測數
-        try:
-            if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][0])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
-                self.dataNumber = self.csvDate.loc[self.csvDate.shape[0]-1][0]# 根據原檔案最後的sequence數
-            else:
-                self.dataNumber = self.csvDate.shape[0]# 根據原檔案的行數
-        except ValueError :#如果遇上另一種數據類型
-            if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][1])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
-                self.dataNumber = self.csvDate.loc[self.csvDate.shape[0]-1][1]# 根據原檔案最後的sequence數
-            else:
-                self.dataNumber = self.csvDate.shape[0] # 根據原檔案的行數
+        self.dataNumber = 2800  # 固定檢測數
+        # try:
+        #     if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][0])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
+        #         self.dataNumber = self.csvDate.loc[self.csvDate.shape[0]-1][0]# 根據原檔案最後的sequence數
+        #     else:
+        #         self.dataNumber = self.csvDate.shape[0]# 根據原檔案的行數
+        # except ValueError :#如果遇上另一種數據類型
+        #     if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][1])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
+        #         self.dataNumber = self.csvDate.loc[self.csvDate.shape[0]-1][1]# 根據原檔案最後的sequence數
+        #     else:
+        #         self.dataNumber = self.csvDate.shape[0] # 根據原檔案的行數
         self.oldExcelDate = pd.DataFrame()
         self.temp_column = [x["column"] for x in self.setting]
         self.column = []
@@ -96,10 +96,13 @@ class CTE(object):
                 old_data_number = int(self.oldExcelDate.iloc[check_index].at[self.column[0]])#檢測數字
                 if x+1 == old_data_number:#檢測到有資料匹配
                     temp = list(self.oldExcelDate.loc[check_index])
-                    self.newExcelData.loc[x-nullrow] = temp
+                    #self.newExcelData.loc[x-nullrow] = temp
+                    self.newExcelData.loc[x] = temp
                     check_index += 1
                 else:
                     nullrow += 1 #檢測是否有缺少行
+                    self.newExcelData.loc[x] =""
+                    self.newExcelData.loc[x][0] = x+1
                     # self.newExcelData.loc[x-nullrow] = ""
             except Exception as ex:
                 print(str(ex))
