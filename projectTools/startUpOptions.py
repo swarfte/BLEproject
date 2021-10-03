@@ -1,5 +1,6 @@
 import projectTools.csvToExcel as PC
 import projectTools.fileManagement as PF
+import projectTools.reformatG as PR
 import pandas as pd
 
 
@@ -62,12 +63,16 @@ def CG_mode(options):#*生成對應的檔案夾名,並在檔案名後加上c或g
         #             sentence = "檔案:" + all_file[0][x] + "出現了未知的錯誤: " + str(ex) + "\n"
         #             log.write(sentence)
 
+
 def test_mode(options):
     print("Test mode start")
-    all_file = PF.CG_put_csv_and_get_excel(options["csv_file"])
-    for x in range(len(all_file[0])):
-        try:
-            run = PC.CTE(all_file[0][x],options["old_setting_format"],all_file[1][x])
-            run.test()
-        except:
-            pass
+
+    def running():
+        all_file = PF.CG_put_csv_and_get_excel(options["csv_file"])
+        for x in range(len(all_file[0])):
+            try:
+                run = PC.CTE(all_file[0][x],options["old_setting_format"],all_file[1][x])
+                run.test()
+            except Exception as ex:
+                print(str(ex))
+    #running()

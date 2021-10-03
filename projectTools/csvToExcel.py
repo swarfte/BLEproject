@@ -15,7 +15,6 @@ class CTE(object):
         self.csvFileName = csvFile
         self.excelFileName = excelFile
         self.csvDate = pd.read_csv(self.csvFileName,encoding="utf-8")
-        self.dataNumber = 0
         self.dataNumber = 2800  # 固定檢測數
         # try:
         #     if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][0])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
@@ -101,11 +100,12 @@ class CTE(object):
                     check_index += 1
                 else:
                     nullrow += 1 #檢測是否有缺少行
-                    self.newExcelData.loc[x] =""
-                    self.newExcelData.loc[x][0] = x+1
+                    self.newExcelData.loc[x] ="" #*填入空行
+                    self.newExcelData.loc[x][0] = x+1 #補上數字
                     # self.newExcelData.loc[x-nullrow] = ""
             except Exception as ex:
-                print(str(ex))
+                pass
+                #print(str(ex))
 
         check = False
         for x in range(self.dataNumber):
@@ -179,6 +179,23 @@ class FCTE(CTE):
 class SQ_FCTE(FCTE):
     def __init__(self, csvFile, json_path,excelFile):
         super(SQ_FCTE, self).__init__(csvFile, json_path,excelFile)
+        #動態調整
+        if int(str(self.csvDate.loc[self.csvDate.shape[0]-1][1])) >= int(str(self.csvDate.shape[0])):#判斷是否缺行/多行
+            self.dataNumber = self.csvDate.loc[self.csvDate.shape[0]-1][1]# 根據原檔案最後的sequence數
+        else:
+            self.dataNumber = self.csvDate.shape[0] # 根據原檔案的行數
+
+        #理論上不寫也行 只不過改正了dataNumber能去掉Gateway檔案多餘的空行
+        self.newExcelData = pd.DataFrame({#新的格式,創建7個欄位
+            self.column[0]:["" for x in range(self.dataNumber)],#0 type
+            self.column[1]:[x+1 for x in range(self.dataNumber)],#1 sequence
+            self.column[2]:["" for x in range(self.dataNumber)],#2 byte
+            self.column[3]:["" for x in range(self.dataNumber)],#3 hop
+            self.column[4]:["" for x in range(self.dataNumber)],#4 Signal strength
+            "day":["" for x in range(self.dataNumber)],#5 day
+            self.column[5]:["" for x in range(self.dataNumber)],#6 time
+            self.column[6]:["" for x in range(self.dataNumber)]#7 gmtime
+        })
         #複制兩個獨立的excel檔
         self.req_ExcelData = copy.deepcopy(self.newExcelData)
         self.res_ExcelData = copy.deepcopy(self.newExcelData)

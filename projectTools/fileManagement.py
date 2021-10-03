@@ -1,14 +1,13 @@
 import os
 import json
+import projectTools.csvToExcel as PC
 
-
-with open("./config/option.json", "r", encoding="utf-8") as f:
-    json_path = json.load(f)
+json_path = PC.open_json("./config/option.json")
 
 def create_excel_folder(name):
-    logs = name.replace("csv","excel")
+    folder = name.replace("csv","excel")
     try:
-        os.mkdir(logs)
+        os.mkdir(folder)
     except:
         pass
 
