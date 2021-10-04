@@ -59,8 +59,8 @@ class RG(object):
                 else:
                     self.new_excel_file.loc[x] = ""
             except Exception as ex:
-                #print(str(ex))
-                pass
+                print(str(ex))
+                #pass
 
         self.new_excel_file.to_excel(self.new_gateway_excel_path,index=None)
 

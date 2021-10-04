@@ -81,11 +81,13 @@ def reformatG_mode(options):
     print("reformat mode start")
     all_file = PF.get_reformat_G_file(options["excel_file"])
     for x in range(len(all_file)):
-        for z in range(len(all_file[x][1])):
-            print(f"reformat: {all_file[x][1][z]}")
-            run = PR.RG(all_file[x][0][z],options,all_file[x][1][z])
-            run.transform()
-
+        try:
+            for z in range(len(all_file[x][1])):
+                print(f"reformat: {all_file[x][1][z]}")
+                run = PR.RG(all_file[x][0][z],options,all_file[x][1][z])
+                run.transform()
+        except Exception as ex:
+            print(str(ex))
     #以main.py為起點
     # q = "./excel/Experiment 2/25c_req.xlsx "
     # j = "./config/F_excel_setting.json"
