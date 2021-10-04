@@ -161,3 +161,54 @@ class CGFileControl (HopFileControl):
                 self.excel_file.append(final_sentence)
 
         return self.excel_file
+
+def get_reformat_G_file(input_path):
+    global json_path
+    create_excel_folder(json_path["reformatG_file"])
+    with open(json_path["reformatG_log"],"w",encoding="utf-8") as l : #清空log的資料準備下一次使用
+        l.write("")
+
+    filer = reformatFileControl(input_path)
+    excel_name = filer.get_native_excel_file()
+
+    return excel_name
+
+class reformatFileControl(object):
+    def __init__(self,input_path):
+        super(reformatFileControl, self).__init__()
+        self.input_path = input_path
+        self.main_folder = [x for x in os.listdir(input_path) if ".txt" not in x]#獲取有甚麼資料夾,並過濾txt文檔
+        self.second_file = [os.listdir(self.input_path + "/" + x) for x in self.main_folder]#*獲取每個excel檔案夾中的資料
+
+        self.use_file = []#真正要使用的檔案
+        for x in range(len(self.second_file)):
+            temp = []
+            for y in range(len(self.second_file[x])):
+                if "_res" not in self.second_file[x][y]:
+                    use_name = self.input_path + "/" + self.main_folder[x] + "/" + self.second_file[x][y]
+                    temp.append(use_name)
+            self.use_file.append(temp) #最終使用的路徑名
+
+        #self.finally_file[x][y][z] X為檔案夾 Y為res/g類型 Z為指定的檔案
+        self.finally_file = []
+        for x in range(len(self.use_file)):
+            folder = []
+            res = []
+            g = []
+
+            for y in range(len(self.use_file[x])):
+                if "_req" in self.use_file[x][y]:
+                    res.append(self.use_file[x][y])
+                else:
+                    g.append(self.use_file[x][y])
+
+            folder.append(res)
+            folder.append(g)
+            self.finally_file.append(folder)
+
+    def get_native_excel_file(self):
+        global json_path
+        for x in self.main_folder :#創建子檔案夾
+            create_excel_folder(json_path["reformatG_file"] + "/" + x)
+
+        return self.finally_file

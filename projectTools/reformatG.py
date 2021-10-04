@@ -1,13 +1,13 @@
 import projectTools.csvToExcel as PC
 import pandas as pd
 import datetime as dt
-import os
 import re
 
 class RG(object):
-    def __init__(self,req_file,json_path,gateway_file):
+    def __init__(self,req_file,option,gateway_file):
+
         super(RG, self).__init__()
-        self.setting = PC.open_json(json_path)
+        self.setting = PC.open_json(option["new_setting_format"])
         self.temp_column = [x["column"] for x in self.setting]
         self.column = self.temp_column
         self.req = pd.read_excel(req_file)
@@ -16,10 +16,11 @@ class RG(object):
         self.dataNumber = self.req.shape[0] #req的行數比gateway多
         self.choice = re.compile(r"\d+g.xlsx")
         self.file_name = re.search(self.choice,self.gateway_file_name).group()#檔案名 r/q共通的
-        self.new_gateway_folder = self.gateway_file_name.replace(self.file_name,"") + "reformatG/"#存放新的excel檔案夾
+        self.new_gateway_folder = self.gateway_file_name.replace(self.file_name,"")#存放新的excel檔案夾
         self.new_gateway_excel_path = self.new_gateway_folder + "New" + self.file_name#新的excel存放路徑
+        self.new_gateway_excel_path = self.new_gateway_excel_path.replace(option["excel_file"],option["reformatG_file"])
         self.gateway_index = 0
-        #self.new_excel_file = copy.deepcopy(self.gateway)
+
         self.new_excel_file = pd.DataFrame({  # 新的格式,創建7個欄位
             self.column[0]: ["" for x in range(self.dataNumber)],  # 0 type
             self.column[1]: [x + 1 for x in range(self.dataNumber)],  # 1 sequence
@@ -32,11 +33,6 @@ class RG(object):
         })
 
     def transform(self):
-        #生成檔案夾
-        try:
-            os.mkdir(self.new_gateway_folder)
-        except:
-            pass
 
         for x in range(self.dataNumber):
             try:
@@ -68,13 +64,6 @@ class RG(object):
 
         self.new_excel_file.to_excel(self.new_gateway_excel_path,index=None)
 
-if __name__ == "__main__":
-    q = "../excel/Experiment 2/25c_req.xlsx "
-    j = "../config/F_excel_setting.json"
-    g = "../excel/Experiment 2/25g.xlsx"
-
-    A = RG(q,j,g)
-    A.transform()
 
 
 

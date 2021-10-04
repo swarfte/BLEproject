@@ -30,7 +30,7 @@ def CG_mode(options):#*生成對應的檔案夾名,並在檔案名後加上c或g
     all_file = PF.CG_put_csv_and_get_excel(options["csv_file"])
     for x in range(len(all_file[0])):
         try:
-            print("changeing " + all_file[0][x])
+            print("transforming " + all_file[0][x])
             if "Experiment 1" in all_file[0][x] :#針對特例
                 run = PC.CTE(all_file[0][x],options["old_setting_format"],all_file[1][x])
                 run.transform()
@@ -76,3 +76,19 @@ def test_mode(options):
             except Exception as ex:
                 print(str(ex))
     #running()
+
+def reformatG_mode(options):
+    print("reformat mode start")
+    all_file = PF.get_reformat_G_file(options["excel_file"])
+    for x in range(len(all_file)):
+        for z in range(len(all_file[x][1])):
+            print(f"reformat: {all_file[x][1][z]}")
+            run = PR.RG(all_file[x][0][z],options,all_file[x][1][z])
+            run.transform()
+
+    #以main.py為起點
+    # q = "./excel/Experiment 2/25c_req.xlsx "
+    # j = "./config/F_excel_setting.json"
+    # g = "./excel/Experiment 2/25g.xlsx"
+    # A = PR.RG(q, j, g)
+    # A.transform()
