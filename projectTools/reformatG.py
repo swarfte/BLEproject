@@ -3,8 +3,9 @@ import pandas as pd
 import datetime as dt
 import re
 
+
 class RG(object):
-    def __init__(self,req_file,option,gateway_file):
+    def __init__(self, req_file, option, gateway_file):
 
         super(RG, self).__init__()
         self.setting = PC.open_json(option["new_setting_format"])
@@ -13,12 +14,13 @@ class RG(object):
         self.req = pd.read_excel(req_file)
         self.gateway_file_name = gateway_file
         self.gateway = pd.read_excel(gateway_file)
-        self.dataNumber = self.req.shape[0] #req的行數比gateway多
+        self.dataNumber = self.req.shape[0]  # req的行數比gateway多
         self.choice = re.compile(r"\d+g.xlsx")
-        self.file_name = re.search(self.choice,self.gateway_file_name).group()#檔案名 r/q共通的
-        self.new_gateway_folder = self.gateway_file_name.replace(self.file_name,"")#存放新的excel檔案夾
-        self.new_gateway_excel_path = self.new_gateway_folder + "New" + self.file_name#新的excel存放路徑
-        self.new_gateway_excel_path = self.new_gateway_excel_path.replace(option["excel_file"],option["reformatG_file"])
+        self.file_name = re.search(self.choice, self.gateway_file_name).group()  # 檔案名 r/q共通的
+        self.new_gateway_folder = self.gateway_file_name.replace(self.file_name, "")  # 存放新的excel檔案夾
+        self.new_gateway_excel_path = self.new_gateway_folder + "New" + self.file_name  # 新的excel存放路徑
+        self.new_gateway_excel_path = self.new_gateway_excel_path.replace(option["excel_file"],
+                                                                          option["reformatG_file"])
         self.gateway_index = 0
 
         self.new_excel_file = pd.DataFrame({  # 新的格式,創建7個欄位
@@ -38,20 +40,20 @@ class RG(object):
             try:
                 time_format = "%Y-%m-%d %H:%M:%S.%f"  # 設定時間格式
 
-                #轉化req的時間
-                req_time = self.req.loc[x][5] + " " + self.req.loc[x][6]#獲取每一行日期+時間
-                req_timeArray = dt.datetime.strptime(req_time,time_format)
-                req_timeStamp = dt.datetime.timestamp(req_timeArray)#轉為整數形式進行比較
+                # 轉化req的時間
+                req_time = self.req.loc[x][5] + " " + self.req.loc[x][6]  # 獲取每一行日期+時間
+                req_timeArray = dt.datetime.strptime(req_time, time_format)
+                req_timeStamp = dt.datetime.timestamp(req_timeArray)  # 轉為整數形式進行比較
 
-                #轉化gateway的時間
+                # 轉化gateway的時間
                 gateway_time = self.gateway.loc[self.gateway_index][5] + " " + self.gateway.loc[self.gateway_index][6]
-                gateway_timeArray = dt.datetime.strptime(gateway_time,time_format)
-                gateway_timeStamp = dt.datetime.timestamp(gateway_timeArray)#轉為整數形式進行比較
+                gateway_timeArray = dt.datetime.strptime(gateway_time, time_format)
+                gateway_timeStamp = dt.datetime.timestamp(gateway_timeArray)  # 轉為整數形式進行比較
 
                 check_time = gateway_timeStamp - req_timeStamp
 
-                if self.req.loc[x][1] == self.gateway.loc[self.gateway_index][1]:#如果是一樣的sequence
-                    if 0 < check_time < 1 :#*判斷req時間遲過recv時間
+                if self.req.loc[x][1] == self.gateway.loc[self.gateway_index][1]:  # 如果是一樣的sequence
+                    if 0 < check_time < 1:  # *判斷req時間遲過recv時間
                         self.new_excel_file.loc[x] = self.gateway.loc[self.gateway_index]
                         self.gateway_index += 1
                     else:
@@ -60,10 +62,6 @@ class RG(object):
                     self.new_excel_file.loc[x] = ""
             except Exception as ex:
                 print(str(ex))
-                #pass
+                # pass
 
-        self.new_excel_file.to_excel(self.new_gateway_excel_path,index=None)
-
-
-
-
+        self.new_excel_file.to_excel(self.new_gateway_excel_path, index=None)
