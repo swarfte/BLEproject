@@ -42,7 +42,7 @@ def CG_mode(options):  # *生成對應的檔案夾名,並在檔案名後加上c�
                 sentence = "檔案:" + all_file[0][x] + "為空白,因此不能正確地轉為excel檔\n"
                 log.write(sentence)
         except Exception as ex:
-            with open (options["log_file"],"a",encoding="utf-8") as log:
+            with open(options["log_file"], "a", encoding="utf-8") as log:
                 sentence = "檔案:" + all_file[0][x] + "出現了未知的錯誤: " + str(ex) + "\n"
                 log.write(sentence)
 
@@ -82,13 +82,13 @@ def reformatG_mode(options):
     print("reformat mode start")
     all_file = PF.get_reformat_G_file(options["excel_file"])
     for x in range(len(all_file)):
-        try:
-            for z in range(len(all_file[x][1])):
-                print(f"reformat: {all_file[x][1][z]}")
-                run = PR.RG(all_file[x][0][z], options, all_file[x][1][z])
-                run.transform()
-        except Exception as ex:
-            print(str(ex))
+        # try:
+        for z in range(len(all_file[x][1])):
+            print(f"reformat: {all_file[x][1][z]}")
+            run = PR.RG(all_file[x][0][z], options, all_file[x][1][z])
+            run.transform()
+        # except Exception as ex:
+        #     print(str(ex))
     # 以main.py為起點
     # q = "./excel/Experiment 2/25c_req.xlsx "
     # j = "./config/F_excel_setting.json"

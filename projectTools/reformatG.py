@@ -21,6 +21,7 @@ class RG(object):
         self.new_gateway_excel_path = self.new_gateway_folder + "New" + self.file_name  # 新的excel存放路徑
         self.new_gateway_excel_path = self.new_gateway_excel_path.replace(option["excel_file"],
                                                                           option["reformatG_file"])
+        self.check_time_limit = option["reformatG_check_time_limit"]
         self.gateway_index = 0
 
         self.new_excel_file = pd.DataFrame({  # 新的格式,創建7個欄位
@@ -39,27 +40,58 @@ class RG(object):
         for x in range(self.dataNumber):
             try:
                 time_format = "%Y-%m-%d %H:%M:%S.%f"  # 設定時間格式
+                fix_time_format = "%Y-%m-%d %H:%M:%S"
 
-                # 轉化req的時間
-                req_time = self.req.loc[x][5] + " " + self.req.loc[x][6]  # 獲取每一行日期+時間
-                req_timeArray = dt.datetime.strptime(req_time, time_format)
-                req_timeStamp = dt.datetime.timestamp(req_timeArray)  # 轉為整數形式進行比較
+                try:
+                    # 轉化req的時間
+                    req_time = str(self.req.loc[x][5]) + " " + str(self.req.loc[x][6])  # 獲取每一行日期+時間
+                    req_timeArray = dt.datetime.strptime(req_time, time_format)
+                    req_timeStamp = dt.datetime.timestamp(req_timeArray)  # 轉為整數形式進行比較
 
-                # 轉化gateway的時間
-                gateway_time = self.gateway.loc[self.gateway_index][5] + " " + self.gateway.loc[self.gateway_index][6]
-                gateway_timeArray = dt.datetime.strptime(gateway_time, time_format)
-                gateway_timeStamp = dt.datetime.timestamp(gateway_timeArray)  # 轉為整數形式進行比較
+                    # 轉化gateway的時間
+                    gateway_time = str(self.gateway.loc[self.gateway_index][5]) + " " + str(
+                        self.gateway.loc[self.gateway_index][6])
+                    gateway_timeArray = dt.datetime.strptime(gateway_time, time_format)
+                    gateway_timeStamp = dt.datetime.timestamp(gateway_timeArray)  # 轉為整數形式進行比較
+                except ValueError:  # 遇到整數時間
+                    req_time = str(self.req.loc[x][5]) + " " + str(self.req.loc[x][6])  # 獲取每一行日期+時間
+                    try:
+                        req_timeArray = dt.datetime.strptime(req_time, fix_time_format)
+                    except ValueError:
+                        req_timeArray = dt.datetime.strptime(req_time, time_format)
+                    req_timeStamp = dt.datetime.timestamp(req_timeArray)  # 轉為整數形式進行比較
+
+                    # 轉化gateway的時間
+                    gateway_time = str(self.gateway.loc[self.gateway_index][5]) + " " + str(
+                        self.gateway.loc[self.gateway_index][6])
+                    try:
+                        gateway_timeArray = dt.datetime.strptime(gateway_time, fix_time_format)
+                    except ValueError:
+                        gateway_timeArray = dt.datetime.strptime(gateway_time, time_format)
+                    gateway_timeStamp = dt.datetime.timestamp(gateway_timeArray)  # 轉為整數形式進行比較
 
                 check_time = gateway_timeStamp - req_timeStamp
-
-                if self.req.loc[x][1] == self.gateway.loc[self.gateway_index][1]:  # 如果是一樣的sequence
-                    if 0 < check_time < 1:  # *判斷req時間遲過recv時間
-                        self.new_excel_file.loc[x] = self.gateway.loc[self.gateway_index]
-                        self.gateway_index += 1
+                if x == self.req.shape[0] - 1 or x == 0:  # 開頭或結尾的情況
+                    if self.req.loc[x][1] == self.gateway.loc[self.gateway_index][1]:  # 如果是一樣的sequence
+                        if 0 < check_time < self.check_time_limit:  # *判斷req時間遲過recv時間
+                            self.new_excel_file.loc[x] = self.gateway.loc[self.gateway_index]
+                            self.gateway_index += 1
+                        else:
+                            self.new_excel_file.loc[x] = ""
                     else:
                         self.new_excel_file.loc[x] = ""
-                else:
-                    self.new_excel_file.loc[x] = ""
+                else:  # 在中間的數據
+                    while self.gateway.loc[self.gateway_index][1] < self.req.loc[x][1]:  # 同步號碼
+                        self.gateway_index += 1
+                    if self.req.loc[x][1] == self.gateway.loc[self.gateway_index][1]:  # 如果是一樣的sequence
+                        if 0 < check_time < self.check_time_limit:  # *判斷req時間遲過recv時間
+                            self.new_excel_file.loc[x] = self.gateway.loc[self.gateway_index]
+                            self.gateway_index += 1
+                        else:
+                            self.new_excel_file.loc[x] = ""
+                    else:
+                        self.new_excel_file.loc[x] = ""
+
             except Exception as ex:
                 print(str(ex))
                 # pass

@@ -5,5 +5,6 @@
   "old_setting_format":"config/excel_setting.json",
   "new_setting_format": "config/F_excel_setting.json",
   "reformatG_log": "./reformatG/reformatG_log.txt",
-  "reformatG_file": "./reformatG"
+  "reformatG_file": "./reformatG",
+  "reformatG_check_time_limit" : 1
 }
